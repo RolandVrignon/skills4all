@@ -1,0 +1,47 @@
+version: "3"
+services:
+  database:
+    image: mysql:8.1.0
+    environment:
+      MYSQL_DATABASE: cogibot
+      MYSQL_USER: cogibot
+      MYSQL_PASSWORD: admin
+      MYSQL_ROOT_PASSWORD: admin
+    volumes:
+      - ./data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 3307:3306
+
+  backend:
+    image: rolekss/s4a-back:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/usr/src/app
+      - ./files:/usr/src/app/files
+    depends_on:
+      - database
+    environment:
+      - ADMIN_EMAIL=roland@cogitum.io
+      - ADMIN_USERNAME=rvrignon
+      - ADMIN_PASSWORD=roro
+      - DB_HOST=database
+      - DB_PROVIDER=mysql
+      - DB_NAME=cogibot
+      - DB_USER=cogibot
+      - DB_PASSWORD=admin
+      - DB_PORT=3306
+      - DB_URL=mysql://cogibot:admin@database:3306/cogibot
+      - OPENAI_API_KEY="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"
+
+  frontend:
+    image: rolekss/s4a-front:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+    environment:
+      - REACT_APP_API_URL="https://s4a-api.cogitum.io"
